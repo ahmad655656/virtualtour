@@ -3,7 +3,7 @@ let pannellum: any = null;
 
 export const loadPannellum = async (): Promise<any> => {
   if (typeof window === 'undefined') {
-    return null; // لا تحميل على السيرفر
+    return null;
   }
 
   if (pannellum) {
@@ -11,20 +11,31 @@ export const loadPannellum = async (): Promise<any> => {
   }
 
   try {
-    // الطريقة 1: تحميل كـ script خارجي
+    // تحميل Pannellum مباشرة من CDN
     if (!(window as any).pannellum) {
       await new Promise((resolve, reject) => {
         const script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js';
+        script.async = true;
         script.onload = () => {
           pannellum = (window as any).pannellum;
           resolve(true);
         };
-        script.onerror = reject;
+        script.onerror = (error) => {
+          reject(new Error(`Failed to load Pannellum: ${error}`));
+        };
         document.head.appendChild(script);
       });
     } else {
       pannellum = (window as any).pannellum;
+    }
+
+    // تحميل CSS إذا لم يكن محملاً
+    if (!document.querySelector('link[href*="pannellum.css"]')) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css';
+      document.head.appendChild(link);
     }
 
     return pannellum;
@@ -34,7 +45,6 @@ export const loadPannellum = async (): Promise<any> => {
   }
 };
 
-// دالة مساعدة للتحقق من تحميل المكتبة
 export const isPannellumLoaded = (): boolean => {
   return typeof window !== 'undefined' && !!(window as any).pannellum;
 };

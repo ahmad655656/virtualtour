@@ -6,18 +6,16 @@ import Sidebar from './components/Sidebar.tsxSidebar';
 import ErrorMessage from './components/ErrorMessage';
 import TourControls from './components/TourControls';
 import InfoPanel from './components/InfoPanel';
+import PannellumViewer from './components/PannellumViewer';
 import { 
   createCompleteScenes, 
   sceneInfo,
   sceneAudio 
 } from '@/lib/scenes';
-import { PanoramaViewer } from '@/lib/panorama';
 
 const scenes = createCompleteScenes();
 
 export default function HomePage() {
-  const panoramaRef = useRef<HTMLDivElement>(null);
-  const viewerRef = useRef<PanoramaViewer | null>(null);
   const [currentSceneId, setCurrentSceneId] = useState('entrance');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,17 +30,22 @@ export default function HomePage() {
   const currentSceneTitle = currentScene?.title || 'المدخل الرئيسي';
   const currentSceneInfo = sceneInfo[currentSceneId];
 
-  // تحميل CSS ديناميكياً
+  // محاكاة تقدم التحميل
   useEffect(() => {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css';
-    document.head.appendChild(link);
+    if (!isLoading) return;
 
-    return () => {
-      document.head.removeChild(link);
-    };
-  }, []);
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 95) {
+          clearInterval(interval);
+          return 95;
+        }
+        return prev + Math.random() * 15;
+      });
+    }, 200);
+
+    return () => clearInterval(interval);
+  }, [isLoading]);
 
   // إدارة الصوت
   useEffect(() => {
@@ -66,143 +69,55 @@ export default function HomePage() {
     };
   }, [currentSceneId, audioEnabled]);
 
-  // استماع للأحداث
-  useEffect(() => {
-    const handleSceneChange = (event: CustomEvent) => {
-      setCurrentSceneId(event.detail.sceneId);
-      setCurrentHotspot(null);
-    };
+  // معالجة تغيير المشهد
+  const handleSceneChange = (sceneId: string) => {
+    setCurrentSceneId(sceneId);
+    setCurrentHotspot(null);
+  };
 
-    const handleHotspotClick = (event: CustomEvent) => {
-      setCurrentHotspot(event.detail.text);
-      if (event.detail.type === 'info') {
-        setShowInfo(true);
-      }
-    };
-
-    window.addEventListener('panorama-scenechange', handleSceneChange as EventListener);
-    window.addEventListener('panorama-hotspotclick', handleHotspotClick as EventListener);
-
-    return () => {
-      window.removeEventListener('panorama-scenechange', handleSceneChange as EventListener);
-      window.removeEventListener('panorama-hotspotclick', handleHotspotClick as EventListener);
-    };
-  }, []);
-
-  // محاكاة تقدم التحميل
-  useEffect(() => {
-    if (!isLoading) return;
-
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 95) {
-          clearInterval(interval);
-          return 95;
-        }
-        return prev + Math.random() * 15;
-      });
-    }, 200);
-
-    return () => clearInterval(interval);
-  }, [isLoading]);
-
-  // تهيئة العارض
-  useEffect(() => {
-    let isMounted = true;
-
-    const initViewer = async () => {
-      try {
-        if (!isMounted || !panoramaRef.current) return;
-
-        setIsLoading(true);
-        
-        // إنشاء العارض
-        viewerRef.current = new PanoramaViewer('panorama-container', scenes);
-        
-        // انتظار تهيئة العارض
-        setTimeout(() => {
-          if (isMounted) {
-            setProgress(100);
-            setTimeout(() => {
-              setIsLoading(false);
-            }, 500);
-          }
-        }, 800);
-
-      } catch (err: any) {
-        console.error('فشل تحميل العارض:', err);
-        if (isMounted) {
-          setError(`
-            <div class="space-y-4">
-              <div class="text-2xl font-bold text-white">⚠️ تعذر تحميل الجولة الافتراضية</div>
-              <div class="text-red-200">${err.message || 'حدث خطأ غير معروف'}</div>
-              <div class="bg-red-900/30 p-4 rounded-xl border border-red-700/50">
-                <h4 class="font-bold mb-2 text-gold">تأكد من:</h4>
-                <ul class="space-y-2 text-right">
-                  <li class="flex items-center gap-2">
-                    <span class="w-2 h-2 bg-gold rounded-full"></span>
-                    اتصال الإنترنت يعمل بشكل صحيح
-                  </li>
-                  <li class="flex items-center gap-2">
-                    <span class="w-2 h-2 bg-gold rounded-full"></span>
-                    المتصفح يدعم WebGL (جرب Chrome أو Firefox)
-                  </li>
-                  <li class="flex items-center gap-2">
-                    <span class="w-2 h-2 bg-gold rounded-full"></span>
-                    تفعيل JavaScript في المتصفح
-                  </li>
-                </ul>
-              </div>
-            </div>
-          `);
-          setIsLoading(false);
-        }
-      }
-    };
-
-    const timer = setTimeout(() => {
-      initViewer();
-    }, 300);
-
-    return () => {
-      isMounted = false;
-      clearTimeout(timer);
-      if (viewerRef.current) {
-        viewerRef.current.destroy();
-        viewerRef.current = null;
-      }
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
-    };
-  }, []);
-
-  // دالة لتغيير المشهد
-  const handleSceneChange = async (sceneId: string) => {
-    if (viewerRef.current && sceneId !== currentSceneId) {
-      try {
-        await viewerRef.current.loadScene(sceneId);
-        setCurrentSceneId(sceneId);
-        setCurrentHotspot(null);
-      } catch (err) {
-        console.error('فشل تغيير المشهد:', err);
-        setError('فشل في تغيير المشهد. يرجى المحاولة مرة أخرى.');
-      }
+  // معالجة النقر على Hotspot
+  const handleHotspotClick = (hotspot: any) => {
+    setCurrentHotspot(hotspot.text);
+    if (hotspot.type === 'info') {
+      setShowInfo(true);
     }
   };
 
-  // التحكم في الصوت
-  const toggleAudio = () => {
-    setAudioEnabled(!audioEnabled);
+  // عند تحميل العارض
+  const handleViewerLoad = () => {
+    setProgress(100);
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 500);
   };
 
-  // الدخول في وضع ملء الشاشة
-  const enterFullscreen = async () => {
-    try {
-      await viewerRef.current?.enterFullscreen();
-    } catch (err) {
-      console.error('فشل الدخول إلى وضع ملء الشاشة:', err);
-    }
+  // عند حدوث خطأ
+  const handleViewerError = (err: any) => {
+    console.error('Viewer error:', err);
+    setError(`
+      <div class="space-y-4">
+        <div class="text-2xl font-bold text-white">⚠️ تعذر تحميل الجولة الافتراضية</div>
+        <div class="text-red-200">${err.message || 'حدث خطأ غير معروف'}</div>
+        <div class="bg-red-900/30 p-4 rounded-xl border border-red-700/50">
+          <h4 class="font-bold mb-2 text-gold">تأكد من:</h4>
+          <ul class="space-y-2 text-right">
+            <li class="flex items-center gap-2">
+              <span class="w-2 h-2 bg-gold rounded-full"></span>
+              اتصال الإنترنت يعمل بشكل صحيح
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="w-2 h-2 bg-gold rounded-full"></span>
+              المتصفح يدعم WebGL (جرب Chrome أو Firefox)
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="w-2 h-2 bg-gold rounded-full"></span>
+              تفعيل JavaScript في المتصفح
+            </li>
+          </ul>
+        </div>
+      </div>
+    `);
+    setIsLoading(false);
   };
 
   return (
@@ -218,10 +133,14 @@ export default function HomePage() {
 
         {/* منطقة عرض البانوراما */}
         <div className="flex-1 relative" dir="ltr">
-          <div 
-            ref={panoramaRef} 
-            id="panorama-container" 
-            className="w-full h-full rounded-none lg:rounded-r-3xl shadow-2xl border-2 border-gold/30"
+          <PannellumViewer
+            scenes={scenes}
+            activeSceneId={currentSceneId}
+            onSceneChange={handleSceneChange}
+            onHotspotClick={handleHotspotClick}
+            onLoad={handleViewerLoad}
+            onError={handleViewerError}
+            className="rounded-none lg:rounded-r-3xl shadow-2xl border-2 border-gold/30"
           />
           
           {isLoading && (
@@ -261,7 +180,7 @@ export default function HomePage() {
           )}
           
           {/* معلومات النقطة الساخنة */}
-          {currentHotspot && (
+          {currentHotspot && !isLoading && (
             <div className="absolute top-6 left-6 bg-gradient-to-r from-black/80 to-black/60 backdrop-blur-md p-4 rounded-2xl border border-gold/30 shadow-2xl max-w-md animate-fadeIn">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-gold">📍</span>
@@ -272,13 +191,15 @@ export default function HomePage() {
           )}
           
           {/* شارة تفاعلية */}
-          <div className="absolute top-6 right-6 bg-gradient-to-r from-purple-600/80 to-purple-800/80 backdrop-blur-md px-4 py-2 rounded-full border border-purple-300/30 shadow-lg">
-            <div className="flex items-center gap-2">
-              <span className="text-white animate-pulse">✨</span>
-              <span className="text-white text-sm font-medium">جولة تفاعلية</span>
-              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+          {!isLoading && (
+            <div className="absolute top-6 right-6 bg-gradient-to-r from-purple-600/80 to-purple-800/80 backdrop-blur-md px-4 py-2 rounded-full border border-purple-300/30 shadow-lg">
+              <div className="flex items-center gap-2">
+                <span className="text-white animate-pulse">✨</span>
+                <span className="text-white text-sm font-medium">جولة تفاعلية</span>
+                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
         
         {/* القائمة الجانبية */}
@@ -291,8 +212,17 @@ export default function HomePage() {
       
       {/* لوحة التحكم */}
       <TourControls 
-        onAudioToggle={toggleAudio}
-        onFullscreen={enterFullscreen}
+        onAudioToggle={() => setAudioEnabled(!audioEnabled)}
+        onFullscreen={() => {
+          const container = document.querySelector('.pnlm-container');
+          if (container) {
+            if (document.fullscreenElement) {
+              document.exitFullscreen();
+            } else {
+              container.requestFullscreen();
+            }
+          }
+        }}
         onInfoToggle={() => setShowInfo(!showInfo)}
         audioEnabled={audioEnabled}
         infoEnabled={showInfo}
