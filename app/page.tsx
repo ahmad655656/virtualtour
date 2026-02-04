@@ -11,13 +11,15 @@ import SyriaMap from './components/SyriaMap';
 import { 
   createCompleteScenes, 
   sceneInfo,
-  sceneAudio 
+  sceneAudio, 
+  SceneId
 } from '@/lib/scenes';
 
 const scenes = createCompleteScenes();
 
 export default function HomePage() {
-  const [currentSceneId, setCurrentSceneId] = useState('entrance');
+// بدل const [currentSceneId, setCurrentSceneId] = useState('entrance');
+const [currentSceneId, setCurrentSceneId] = useState<SceneId>('entrance');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [progress, setProgress] = useState(0);
@@ -29,9 +31,12 @@ export default function HomePage() {
   const viewerContainerRef = useRef<HTMLDivElement>(null);
 
   // الحصول على المشهد الحالي
-  const currentScene = scenes.find(scene => scene.id === currentSceneId);
-  const currentSceneTitle = currentScene?.title || 'المدخل الرئيسي';
-  const currentSceneInfo = sceneInfo[currentSceneId];
+ // الحصول على المشهد الحالي
+const currentScene = scenes.find(scene => scene.id === currentSceneId);
+const currentSceneTitle = currentScene?.title || 'المدخل الرئيسي';
+// تعديل هنا لتجنب خطأ TypeScript
+const currentSceneInfo = sceneInfo[currentSceneId];
+
 
   // محاكاة تقدم التحميل
   useEffect(() => {
