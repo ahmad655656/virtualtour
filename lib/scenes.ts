@@ -57,6 +57,8 @@ export interface Scene {
   hotSpots?: HotSpot[];
   audioUrl?: string;
   info?: SceneInfo;
+  realImages?: string[]; // <-- أضفنا realImages كمصفوفة اختيارية
+
 }
 
 /* =========================================================
