@@ -1,0 +1,35 @@
+/* app/lib/leaflet-fix.css */
+@import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+
+/* إصلاحات لأنماط Leaflet */
+.leaflet-container {
+  font-family: inherit !important;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 16px !important;
+  backdrop-filter: blur(12px) !important;
+  background: linear-gradient(135deg, rgba(10, 41, 25, 0.95), rgba(13, 53, 31, 0.95)) !important;
+  border: 2px solid rgba(212, 175, 55, 0.3) !important;
+}
+
+.leaflet-popup-tip {
+  background: rgba(10, 41, 25, 0.95) !important;
+  border: 2px solid rgba(212, 175, 55, 0.3) !important;
+}
+
+.leaflet-control-zoom {
+  border: 1px solid rgba(212, 175, 55, 0.3) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+.leaflet-control-zoom a {
+  background: rgba(10, 41, 25, 0.9) !important;
+  color: #D4AF37 !important;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2) !important;
+}
+
+.leaflet-control-zoom a:hover {
+  background: rgba(212, 175, 55, 0.2) !important;
+}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import 'leaflet/dist/leaflet.css';
+import '../lib/leaflet-fix.css'; // <-- هذا بدلاً من 'leaflet/dist/leaflet.css'
 import { syriaLocations } from '@/lib/scenes';
 
 // تحميل مكونات Leaflet ديناميكياً مع تعطيل SSR
