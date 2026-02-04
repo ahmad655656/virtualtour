@@ -143,42 +143,55 @@ export default function HomePage() {
             className="rounded-none lg:rounded-r-3xl shadow-2xl border-2 border-gold/30"
           />
           
-          {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#0a2919]/95 to-[#0d351f]/95 backdrop-blur-sm">
-              <div className="text-center max-w-md p-8 bg-gradient-to-br from-[#0a2919] to-[#0d351f] rounded-2xl shadow-2xl border border-gold/30">
-                <div className="relative w-32 h-32 mx-auto mb-6">
-                  <div className="absolute inset-0 border-4 border-gold/20 rounded-full"></div>
-                  <div className="absolute inset-0 border-4 border-gold border-t-transparent rounded-full animate-spin"></div>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-4xl">🌿</div>
-                  </div>
-                </div>
-                
-                <div className="text-2xl font-bold text-gold mb-4">جاري تحميل الجولة الافتراضية</div>
-                <p className="text-gray-300 mb-6">نحضر لك تجربة غامرة في حديقة النخيل</p>
-                
-                {/* شريط التقدم */}
-                <div className="mb-6">
-                  <div className="flex justify-between text-sm text-gray-400 mb-2">
-                    <span>تحميل المشاهد التفاعلية...</span>
-                    <span>{Math.round(progress)}%</span>
-                  </div>
-                  <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-gradient-to-r from-gold to-yellow-500 transition-all duration-300"
-                      style={{ width: `${progress}%` }}
-                    ></div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
-                  <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                  <span>جاري تحميل النقاط الساخنة والمحتوى التفاعلي...</span>
-                </div>
-              </div>
-            </div>
-          )}
-          
+        {isLoading && (
+  <div className="absolute inset-0 z-[100] flex items-center justify-center bg-[#040d08]/95 backdrop-blur-md">
+    <div className="w-full max-w-sm p-10 text-center relative">
+      
+      {/* المؤشر الدائري الاحترافي */}
+      <div className="relative w-24 h-24 mx-auto mb-8">
+        <div className="absolute inset-0 border-2 border-gold/10 rounded-full" />
+        <svg className="w-full h-full transform -rotate-90">
+          <circle
+            cx="48"
+            cy="48"
+            r="46"
+            stroke="currentColor"
+            strokeWidth="2"
+            fill="transparent"
+            className="text-gold"
+            strokeDasharray="289"
+            style={{ 
+              strokeDashoffset: 289 - (289 * progress) / 100,
+              transition: 'stroke-dashoffset 0.5s ease' 
+            }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center text-xl font-bold text-gold">
+          {Math.round(progress)}%
+        </div>
+      </div>
+
+      {/* النصوص */}
+      <h2 className="text-xl font-bold text-white mb-2 tracking-wide">جاري التحميل</h2>
+      <p className="text-white/40 text-xs uppercase tracking-[0.2em] mb-8">Preparing Your Experience</p>
+
+      {/* شريط التقدم النحيف */}
+      <div className="relative h-[2px] w-full bg-white/10 rounded-full overflow-hidden mb-4">
+        <div 
+          className="absolute h-full bg-gold transition-all duration-500 shadow-[0_0_10px_#D4AF37]"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
+      {/* رسالة الحالة */}
+      <div className="flex items-center justify-center gap-2">
+        <span className="w-1.5 h-1.5 bg-gold rounded-full animate-ping" />
+        <span className="text-[10px] text-white/30 uppercase font-medium">Synchronizing Scenes</span>
+      </div>
+      
+    </div>
+  </div>
+)}
           {/* معلومات النقطة الساخنة */}
           {currentHotspot && !isLoading && (
             <div className="absolute top-6 left-6 bg-gradient-to-r from-black/80 to-black/60 backdrop-blur-md p-4 rounded-2xl border border-gold/30 shadow-2xl max-w-md animate-fadeIn">
